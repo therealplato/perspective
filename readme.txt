@@ -1,6 +1,6 @@
 Usage:
 
-cd personae
+cd perspective
 irb -I . #to launch an IRB session in this folder
 require 'dashboard'
 
