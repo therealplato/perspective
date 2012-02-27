@@ -1,6 +1,7 @@
 require File.expand_path(File.dirname(__FILE__) + '/trustcore')
 include TrustCore
 require "test/unit"
+#require "json"
 class Nymtest < Test::Unit::TestCase
   def test_default_nick
     a=Nym.new
@@ -10,6 +11,14 @@ class Nymtest < Test::Unit::TestCase
     b=Nym.new("bob")
     assert_equal "bob", b.nick
   end
+  def test_json
+    a=Nym.new("Crookshanks")
+    aa=JSON.generate(a)
+    assert_equal %[{"json_class":"TrustCore::Nym","nick":"Crookshanks"}], aa
+    b=JSON.parse(aa)
+    assert_equal b.nick, "Crookshanks"
+  end
+
 end
 
 class Ratetest < Test::Unit::TestCase
@@ -42,6 +51,19 @@ class Ratetest < Test::Unit::TestCase
     assert_equal true, testtrue.score
     assert_equal false, testfalse.score
   end
+  def test_binary_rating_json
+    tt=JSON.generate(BinaryRating.new(true))
+    assert_equal %[{"json_class":"TrustCore::BinaryRating","score":"true"}], tt
+    ff=JSON.generate(BinaryRating.new(false))
+    assert_equal %[{"json_class":"TrustCore::BinaryRating","score":"false"}], ff
+    nn=JSON.generate(BinaryRating.new(nil))
+    assert_equal %[{"json_class":"TrustCore::BinaryRating","score":"null"}], nn
+
+    assert_equal JSON.parse(tt).score, true
+    assert_equal JSON.parse(ff).score, false
+    assert_equal JSON.parse(nn).score, nil
+  end
+
   def test_integer_rating
     testnil1 = IntegerRating.new(1,5)
     testnil2 = IntegerRating.new(1,5,nil)

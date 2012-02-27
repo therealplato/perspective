@@ -1,19 +1,30 @@
 #!/usr/bin/ruby
+require 'json'
+
 module TrustCore
+  
 class Nym
 #Holds information for a single identity
 #Params: 
 #+nick+::Nickname for this nym
-
   attr_accessor :nick
+
   def initialize(nick="alice")
+    fail "nick must be a string" unless nick.is_a?(String)
     @nick=nick
   end
+  
   def inspect
     "#<Nym: #{@nick}>"
   end
   def to_s
     "#{@nick}"
+  end
+  def to_json(*a)
+    {'json_class' => self.class.name, 'nick' => @nick}.to_json(*a)
+  end
+  def self.json_create(fromhash)
+    new(*fromhash['nick'])
   end
 end
 
@@ -47,6 +58,18 @@ class Link
       "#{@source.to_s} -> #{@sink.to_s}: [#{@rating.to_s}]"
     end
   end
+  def to_json(*a)
+    {'json_class' => self.class.name, 
+         'source' => @source.to_json, 
+           'sink' => @sink.to_json, 
+          'rating'=> @rating.to_json}.to_json(*a)
+  end
+  def self.json_create(o)
+    source=JSON.parse(o['source'])
+    sink=JSON.parse(o['sink'])
+    rating=JSON.parse(o['rating'])
+    new(source,sink,rating)
+  end
 end
 
 class Rating              
@@ -58,6 +81,7 @@ class Rating
   def initialize(score=nil)
     @score=score
   end
+
 end
 
 class BinaryRating < Rating
@@ -74,18 +98,43 @@ class BinaryRating < Rating
   end
   def to_s
     case @score
-    when true then "+"
-    when false then "-"
-    when nil then " "
-    else "?"
+    when true 
+      "+"
+    when false 
+      "-"
+    when nil 
+      " "
+    else 
+      "?"
     end
   end
   def inspect
     case @score
-    when true then "+"
-    when false then "-"
-    when nil then " "
-    else "?"
+    when true 
+      "+"
+    when false 
+      "-"
+    when nil 
+      " "
+    else 
+      "?"
+    end
+  end
+  def to_json(*a)
+    {'json_class' => self.class.name, 
+          'score'=> @score.to_json}.to_json(*a)
+  end
+  def self.json_create(fromhash)
+    imported = fromhash['score']
+    case imported
+    when "true"
+      new(true)
+    when "false"
+      new(false)
+    when "null"
+      new(nil) #NOTE use of null by JSON 
+    else 
+      fail 'imported score in json_create was none of "true" "false" "null"'
     end
   end
 end
@@ -146,5 +195,14 @@ class Web
       end
     end
   end
+  def to_json(*a)
+    { "json_class" => self.class.name,
+      "links" => @links.to_json }.to_json(*a)
+  end
+  def self.json_create(o)
+    new(JSON.parse(*o["links"]))
+  end
+
+
 end #of Web class
 end #of TrustCore module
