@@ -3,16 +3,12 @@ include TrustCore
 require "test/unit"
 
 class Nymtest < Test::Unit::TestCase
-  def test_default_nick
-    a=Nym.new
-    assert_equal "alice", a.nick
-  end
   def test_nondefault_nick
-    b=Nym.new("bob")
-    assert_equal "bob", b.nick
+    d=Nym.new("deadbeef","dobby")
+    assert_equal "dobby", d.nick
   end
   def test_json
-    a=Nym.new("Crookshanks")
+    a=Nym.new("deadbeef","Crookshanks")
     aa=JSON.generate(a)
     assert_equal %[{"json_class":"TrustCore::Nym","nick":"Crookshanks"}], aa
     b=JSON.parse(aa)
@@ -34,17 +30,17 @@ class Ratetest < Test::Unit::TestCase
    assert_equal false, testfalse.score
   end
   def test_binary_rating
-    testnil1 = BinaryRating.new()
-    testnil2 = BinaryRating.new(nil)
-    testtrue = BinaryRating.new(true)
-    testfalse = BinaryRating.new(false)
+    testnil1 = BinaryRating.new("deadbeef")
+    testnil2 = BinaryRating.new("deadbeef",nil)
+    testtrue = BinaryRating.new("deadbeef",true)
+    testfalse = BinaryRating.new("deadbeef",false)
 
     assert_raise TypeError do
-      testbad = BinaryRating.new(7)
+      testbad = BinaryRating.new("deadbeef",7)
     end
 
     assert_raise TypeError do
-      testbad2 = BinaryRating.new("A++")
+      testbad2 = BinaryRating.new("deadbeef","A++")
     end
     assert_equal nil, testnil1.score
     assert_equal nil, testnil2.score
