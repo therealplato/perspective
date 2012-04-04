@@ -4,9 +4,10 @@ Planned hex grid demos
 User experience:
 Open a webpage, get a blank grid
 Click to place a nym
+Maneuver through the nymscape
 Click a placed nym and drag to another nym to create a link
 Type the rating score in a popup
-Click "Run algorithm", or set a mode where any click runs from clicked POV
+Call Ruby code, passing in the topology, to send advanced metrics through pipe
 Display map of results
 
 ==Parker's Sailing Game==
