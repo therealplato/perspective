@@ -1,52 +1,51 @@
 //Hex grid implementation by plato 03.28.12
-
-//Vertex is the basic object, we start by initializing a grid of vertices
+//Vertex objects contain a y,z coordinate pair. 
+//+y is north, same as usual xy. +z is 60 degrees CW from y. e.g.  y:| z:/ 
 //The distance between two vertices is 1 unit. A hex is made of six equilateral
 //triangles and 6 (7?) vertices so its diameter is 2 units.
-//The Vertex yz axes are not orthogonal. +y is north, same as in xy,
-//but +z is 60 degrees clockwise from y.   e.g. y:| z:/ 
 
 (function() {
-var ctx={};   //Create context to hold globally accessible objects
-ctx.radius=15;
-ctx.xorigin=300; ctx.yorigin=300; //px from top left
+
+var ctx={};            //Create context to hold globally accessible objects
+ctx.xorigin=300; ctx.yorigin=300;    //offset of yz origin in xy from top left
+ctx.radius=15;         //pixels between vertices, and radius to corner of hex
 ctx.r=function(){ return ctx.radius;};
 
-///Turn vertex yz coords into xy coords
-// x_proj, y_proj are projections using sohcahtoa
+//Turn vertex yz coords into xy coords. Scale y&z by r and project onto xy.
+//Note that the z projection has x&y components, y simply has y. (same axis!)
 yz2xy=function(y0,z0) {
 
-    xorigin=ctx.xorigin;     yorigin=ctx.yorigin;
-    r=ctx.r();
-    z_sign = (z0<0)? -1:1;
-    hypotenuse = (Math.abs(z0)*r);
-    x_proj=hypotenuse*Math.cos(Math.PI/6); //hyp * cos = adjacent
-    y_proj=hypotenuse*Math.sin(Math.PI/6); // Pi/6 rad = 30 degrees
+    z_sign = ((z0<0) ?   -1 : 1);
+    hypotenuse = (Math.abs(z0)*ctx.r());
+    z_to_x=hypotenuse*Math.cos(Math.PI/6); // hyp * cos = adjacent
+    z_to_y=hypotenuse*Math.sin(Math.PI/6); // Pi/6 rad = 30 degrees
 
+    //note! "positive y" in yz coords points up. <canvas> treats +y as down.
     if(z_sign==1){
-//"positive y" in yz maps to negative y in xy, i.e. up. canvas origin is @ top left
-        x1=xorigin+x_proj;     y1=yorigin-(y0*r)-y_proj;
+        x1=ctx.xorigin +z_to_x;     y1=ctx.yorigin -(y0*ctx.r()) -z_to_y;
     } else if (z_sign==-1){
-        x1=xorigin-x_proj;     y1=yorigin-(y0*r)+y_proj;
+        x1=ctx.xorigin -z_to_x;     y1=ctx.yorigin -(y0*ctx.r()) +z_to_y;
     } else {console.log("error in vert2xy")};
     return {"x":x1, "y":y1};
 };
 
-////*******************
-///Vertex object logic
+  //*******************
+ //      Vertex
 //*******************
 function Vertex(y0,z0) {
 
-    this.y=y0;    this.z=z0;    this.theta=0;
+    this.y=y0;    this.z=z0;    this.theta=null;
     //theta: rotation angle. 0: up/12'ck, Pi/3: 10'ck, Pi: 6'ck 2*Pi: 12'ck
-    this.links={"to":[],"from":[]};
+//    this.links={"to":[],"from":[]};
     this.PhaseY=((this.y%3)+3)%3;    this.PhaseZ=((this.z%3)+3)%3;
     //We have to do modulo twice to handle y|z<0. e.g. (-4)%3 = -1 => (-1+3)%3=2
 };
 
-//  Access a vertex that's stored in ctx.verts by yz coords
+
+// Access Vertex objects stored in ctx.verts with yz coords
 function getVertex(y,z) {
-    ystr=y.toString(); zstr=z.toString();
+
+    ystr=y.toString();       zstr=z.toString();
     if( (typeof(ctx.verts[ystr])=="undefined") || 
         (typeof(ctx.verts[ystr][zstr])=="undefined") )
     { return null; }
@@ -54,7 +53,6 @@ function getVertex(y,z) {
     { return ctx.verts[ystr][zstr]; };
 };
 
-//* Vertex Methods
 
 //  Accessors for vertex neighbors - note that this returns adjacent VERTICES
 Vertex.prototype._12=function(){ return getVertex(this.y+1,this.z  ); };
@@ -63,21 +61,22 @@ Vertex.prototype._8 =function(){ return getVertex(this.y,  this.z-1); };
 Vertex.prototype._6 =function(){ return getVertex(this.y-1,this.z  ); };
 Vertex.prototype._4 =function(){ return getVertex(this.y-1,this.z+1); };
 Vertex.prototype._2 =function(){ return getVertex(this.y,  this.z+1); };
-
 //  if PhaseX=PhaseY this vertex is in a hex, otherwise it's on the grid
-Vertex.prototype.isGridPhase=function()  { return this.phaseY != this.phaseZ; };
+Vertex.prototype.isGridPhase=function() { return this.phaseY != this.phaseZ; };
 Vertex.prototype.isHexPhase=function()  { return this.phaseY == this.phaseX; };
+
 
 //  Calculate distance between vertices, x axis first
 Vertex.prototype.distanceTo=function(v2) {
 
-    dy=v2.y - this.y;        d=0;
-    dz=v2.z - this.z;
-    while(dy != 0 || dz != 0) {     //step to y=z axis then to origin
+    d=0;
+    dy=v2.y - this.y;         dz=v2.z - this.z;
+
+    while(dy != 0 || dz != 0) {      //step towards y=z axis, then to origin
         if((Math.abs(dy)+Math.abs(dz)) == Math.abs(dy + dz)) {
-        //We're in sextant 12-2 or 6-8 since sign_y == sign_z. d = |dy|+|dz|
-        //In any other sextant, start by travelling diagonally to these ones
+        //We're in sextant 12:2 or 6:8 (as sign_y==sign_z) thus d = |dy|+|dz|
              d = d+Math.abs(dy+dz);  dy=0;    dz=0;    }
+        //In any other sextant, start by travelling diagonally to these ones
         else if (dy > 0 && dz < 0){
                            d = d+1;  dy=dy-1; dz=dz+1; }
         else if (dy < 0 && dz > 0){
@@ -89,53 +88,49 @@ Vertex.prototype.distanceTo=function(v2) {
     return d;
 }; 
 
+
 //  Recursively call v1.pathTo(v2).pathTo(v3)... stopping when you find a path
 Vertex.prototype.pathTo=function(vn,pathArr) {
-    //we pass the endpoint into each recursive call as vn. this sorts its 
-    //neighbors by lowest distance to vn, and calls each neighbor.pathTo(vn)
-    //When & IF vn.pathTo(vn) is called by a neighbor, it returns a path array
-    //
-    //Upon receiving a returned array, up-trunk function instances immediately
-    //return the same, up to the first v1.pathTo(v2) => [v1,v3,v2]
+
+ //Sort this Vertex's neighbors by fitness (shortest distance to target vn) then
+ //call them recursively, until we find the shortest valid path.
+
+    //When & IF vn.pathTo(vn) is called, vn returns pathArr up the chain.
     if(pathArr == undefined){ pathArr = [];}; //invoke w/ 1 arg: v1.pathTo(v2)
     pathArr.push(this);
     if(this==vn) {return pathArr};
 
-    // Loop over our six neighbors, starting with the one closest to vn
-    var neighbors=[]; var ay=[ 1, 1, 0,-1,-1, 0] //CCW from 12
-                      var az=[ 0,-1,-1, 0, 1, 1]    
-    for(var i=0;i<6;i++){
-        neighbors.push({'y':this.y+ay[i], 'z':this.z+az[i], 'd':null});
-    };
+    //Otherwise we're not at vn yet. Set up an array to remember neighbors
+    var neighbors=[]; var dy=[ 1, 1, 0,-1,-1, 0] //CCW from 12
+                      var dz=[ 0,-1,-1, 0, 1, 1]    
 
-    for(var i=0;i<neighbors.length;i++) {
+    //test each neighbor's distance to vn
+    for(var i=0;i<6;i++){
+        neighbors.push({'y':this.y+dy[i], 'z':this.z+dz[i], 'd':null});
         var vi=getVertex(neighbors[i]['y'],neighbors[i]['z']);
         if(vi==null){console.log("Skipping inaccessible"); continue;};
-        var di=vi.distanceTo(v2);
+        var di=vi.distanceTo(vn);
         neighbors[i]["d"]=di;
     };
     
-    neighbors.sort(function(a,b) {   //sort neighbors by increasing dist to v2
-        if(b==null){return 1};
-        return a['d'] - b['d'];
-    });
+    neighbors.sort( function(a,b) {   //sort neighbors by increasing dist to vn
+                      if(b==null){return 1};
+                      return a['d'] - b['d'];
+     });
 
-    console.log(neighbors);
-    
-    for(var i=0;i<neighbors.length;i++) {  //start with closest vert
+    //starting with closest vert, recursively call pathTo(vn) until vn replies
+    for(var i=0;i<neighbors.length;i++) {  
         var v1=getVertex(neighbors[i]["y"],neighbors[i]["z"]);
         if(v1==null){continue;};           //inaccessible vertex, skip
         temp=v1.pathTo(v2,pathArr);        //v1 returns null if branch fails,
         if(temp != null){  return temp;  };  //else vn returns complete pathArr
     }; //End of for loop. If we got here, no neighbors have a valid path.
     return null;
-};
+}; //To fix: double search vertices and probable local optima problems
     
 
-
-
-////****************
-///Hex object logic
+  //****************
+ //      Hex
 //****************
 function Hex(v0) {
 if(v0==null){return null;};
