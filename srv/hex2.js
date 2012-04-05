@@ -6,10 +6,14 @@
 
 (function() {
 
-var ctx={};            //Create context to hold globally accessible objects
+var ctx={};            //Add some important stuff to globally accessible ctx
 ctx.xorigin=300; ctx.yorigin=300;    //offset of yz origin in xy from top left
 ctx.radius=15;         //pixels between vertices, and radius to corner of hex
 ctx.r=function(){ return ctx.radius;};
+ctx.socket = io.connect('http://localhost');
+    ctx.socket.on('online',function(data) {
+        console.log(data); ctx.socket.emit('pong', {'got':data});
+    });
 
 //Turn vertex yz coords into xy coords. Scale y&z by r and project onto xy.
 //Note that the z projection has x&y components, y simply has y. (same axis!)
@@ -37,7 +41,7 @@ function Vertex(y0,z0) {
     this.y=y0;    this.z=z0;    this.theta=null;
     //theta: rotation angle. 0: up/12'ck, Pi/3: 10'ck, Pi: 6'ck 2*Pi: 12'ck
 //    this.links={"to":[],"from":[]};
-    this.PhaseY=((this.y%3)+3)%3;    this.PhaseZ=((this.z%3)+3)%3;
+    this.phaseY=((this.y%3)+3)%3;    this.phaseZ=((this.z%3)+3)%3;
     //We have to do modulo twice to handle y|z<0. e.g. (-4)%3 = -1 => (-1+3)%3=2
 };
 
@@ -62,8 +66,8 @@ Vertex.prototype._6 =function(){ return getVertex(this.y-1,this.z  ); };
 Vertex.prototype._4 =function(){ return getVertex(this.y-1,this.z+1); };
 Vertex.prototype._2 =function(){ return getVertex(this.y,  this.z+1); };
 //  if PhaseX=PhaseY this vertex is in a hex, otherwise it's on the grid
-Vertex.prototype.isGridPhase=function() { return this.phaseY != this.phaseZ; };
-Vertex.prototype.isHexPhase=function()  { return this.phaseY == this.phaseX; };
+Vertex.prototype.gridPhase=function() { return this.phaseY != this.phaseZ; };
+Vertex.prototype.hexPhase=function()  { return this.phaseY == this.phaseZ; };
 
 
 //  Calculate distance between vertices, x axis first
@@ -137,17 +141,19 @@ if(v0==null){return null;};
     this.center=v0;
     tmp=yz2xy(v0.y,v0.z);
     this['kinshape']= new Kinetic.RegularPolygon({
+        myHex:this,
         x:tmp['x'],
         y:tmp['y'],
         sides: 6,
         radius: ctx.r(),
         fill: "#FFFFFF",
         stroke: "black",
-        strokeWidth: 1,                          }); 
+        strokeWidth: 1,
+    }); 
 };
 
 function getHex(p,q) {
-    ystr=p.toString(); zstr=q.toString();
+    ystr=p.toString();    zstr=q.toString();
     if( (typeof(ctx.hexes[ystr])=="undefined") || 
         (typeof(ctx.hexes[ystr][zstr])=="undefined") )
     { return null; }
@@ -190,7 +196,7 @@ function Chain(v1,vn){
     if(v1==vn) {return null;};
     var pathArr=v1.pathTo(vn);
     if(pathArr==null||pathArr.length==0){    return null;}
-    else if (pathArr.length==1) {           return null;}
+    else if (pathArr.length==1) {            return null;}
     else {
         this.edgeArr = [];
         for(i=1;i<=pathArr.length;i++){
@@ -248,53 +254,39 @@ ctx.noteL     = new Kinetic.Layer("notes");
 ctx.stage.add(ctx.bgL);   ctx.stage.add(ctx.hexL); 
 ctx.stage.add(ctx.linkL); ctx.stage.add(ctx.noteL); 
 
-//Define our grid of vertices
-for(var m=-10;m<10;m++) {
+//Define our grid of vertices and place background grid
+for(var m=-11;m<11;m++) {
     ctx.verts[m.toString()]={};
-    for(var n=-10;n<10;n++) {
+    for(var n=-11;n<11;n++) {
         ctx.verts[m.toString()][n.toString()]=new Vertex(m,n);
-    };        //we'll access these with getVertex(m,n)
+        if(getVertex(m,n).hexPhase()==true) {
+            if(ctx.hexes[m.toString()]==undefined) {ctx.hexes[m.toString()]={}};
+            ctx.hexes[m.toString()][n.toString()]=new Hex(getVertex(m,n));
+            shape=getHex(m,n)['kinshape'];
+            shape.setFill("#efefef");
+            shape.setStroke("#bbbbbb");
+            shape.on("click", function(){
+                ctx.socket.emit('clicked',{y:this.myHex.center.y,
+                                           z:this.myHex.center.z});
+                console.log('Hex at ('+this.myHex.center.y+','+
+                                       this.myHex.center.z+') clicked');
+            });
+            ctx.bgL.add(shape); 
+        };            
+    };        
 };
 var offset=0;
-for(var p=0+offset;p<10;p=p+1){
+for(var p=-10+offset;p<10;p=p+1){
     ctx.hexes[p.toString()]={};
-    for(var q=0+offset; q<10; q=q+3){
-        console.log(p+'.'+q);
-        ctx.hexes[p.toString()][q.toString()]=new Hex(getVertex(p,q));
-        shape=getHex(p,q)['kinshape'];
-        shape.setFill("#ffffff");
-        shape.setStroke("#AAAAAA");
-        ctx.bgL.add(shape); 
+    for(var q=-10+offset; q<10; q=q+3){
     };
     offset=(offset+1)%3;
 };
 
+console.log(getHex(0,0));
 
-console.log("yz2xy(0,0): "+yz2xy(0,0)['x']+','+yz2xy(0,0)['y'])
-console.log("yz2xy(1,0): "+yz2xy(1,0)['x']+','+yz2xy(1,0)['y'])
-
- //Place two hexes 
-//h1=new Hex(getVertex(1,1));
-//h2=new Hex(getVertex(5,5));
-foo=new Kinetic.RegularPolygon({
-        x:30,
-        y:30,
-        sides: 6,
-        radius: ctx.r(),
-        fill: "#FFFFFF",
-        stroke: "black",
-        strokeWidth: 1,                          
-}); 
-
-ctx.linkL.add(foo); 
-ctx.linkL.draw();
-//Create a link between them
-//link=new Link(h1, h2)
-//e=Edge(v2,5*Math.PI/3,1);
-//}; end of window.onload
-
-//Draw the grid, hexes and links
 ctx.bgL.draw();
 ctx.hexL.draw()
+ctx.linkL.draw();
 }; //end of window.onload()
 })();

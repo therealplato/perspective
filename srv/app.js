@@ -48,7 +48,7 @@ io.sockets.on('connection', function (socket) {
 //  });
     socket.emit('online',{foo:'ping'});
     socket.emit('activate', {'i':2,'j':3,'color':'#333333'});
-    socket.on('hex clicked', function (data) {
+    socket.on('clicked', function (data) {
         console.log(data);
         socket.emit('ack', data);
     });
