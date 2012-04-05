@@ -1,7 +1,18 @@
-This is a work in progress tool suite to simulate & inspect trust networks.
-The database to use is hardcoded as localhost:5984/persp2 in dashboard.rb.
 
-Dependencies: couchdb
+This is a work in progress tool suite to simulate & inspect trust networks.
+Dependencies: couchdb, node.js
+
+Data will be stored in couchdb, processed with node.js and ruby, and 
+displayed on an html5 hex grid.
+
+NODE.JS code
+install nodejs from repo's
+cd perspective/srv/
+node app.js    #then connect to http://localhost:3210 in browser
+
+
+RUBY code - original trust model
+Uses a hardcoded couchdb at localhost:5984/persp2 in dashboard.rb
 
 Usage:
 cd perspective
