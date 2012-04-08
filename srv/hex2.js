@@ -176,16 +176,9 @@ Hex.prototype._1 =function() {
     return getHex(getVertex(this.center.y+1,this.center.z+1));};
 
 
-////
-//*An edge is a directional connection between vertices
-//
-//Edge.prototype.draw = function() {
-//    {'x':24,'y':400} = hex2xy(this.source.y, this.source.z);
-//    {'x':40,'y':350} = hex2xy(this.sink.y,   this.sink.z);
-//    ctx.canvas.line
-
-Edge.prototype.draw=function(){
-};
+  //****************
+ // Chains + Links
+//****************
 
 function Edge(v1,v2) {
     this.source=v1;
@@ -228,21 +221,22 @@ function pivotOut(v0,theta){
     return getVertex(v0.y+dy, v0.z+dz);
 };
 
-
-//walk=function(edge1, hand) {
-//if (hand=left){
-//    walkTo edge1.
-
-//placeNode: getWhere, new Hex(v0)
-//Node.linkTo(Node2)
+ctx.hexClicked = function(h0) {
+    ctx.socket.emit('hexClicked',{y:h0.center.y,
+                               z:h0.center.z});
+    console.log('Hex at ('+h0.center.y+','+
+                           h0.center.z+') clicked');
+    var docy=document.getElementById("docy");
+    var docz=document.getElementById("docz");
+    docy.innerHTML=h0.center.y;
+    docz.innerHTML=h0.center.z;
+};
 //
-//pathLink: getFromTo
-
-
 ////******************
 ///Main program logic
 //******************
 window.onload=function(){
+
 ctx.verts={}; //this will hold Vertex objects
 ctx.hexes={}; //this will hold Hex objects
 ctx.links={}; //this will hold links connecting Hex objects
@@ -266,10 +260,7 @@ for(var m=-11;m<11;m++) {
             shape.setFill("#efefef");
             shape.setStroke("#bbbbbb");
             shape.on("click", function(){
-                ctx.socket.emit('clicked',{y:this.myHex.center.y,
-                                           z:this.myHex.center.z});
-                console.log('Hex at ('+this.myHex.center.y+','+
-                                       this.myHex.center.z+') clicked');
+                ctx.hexClicked(this.myHex);
             });
             ctx.bgL.add(shape); 
         };            

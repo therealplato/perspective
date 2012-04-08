@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<!--http://jsfiddle.net/ScF6c/5/-->
+<html>
+    <head>
+        <script src="/socket.io/socket.io.js"></script>
+        <script type="text/javascript" src="srv/kinetic-v3.8.3.js">  </script>
+        <script type="text/javascript" src="srv/hexlib.js">          </script>
+        <script type="text/javascript" src="srv/perspective.js">     </script>
+        <style> #location {position:absolute; left:600px; top:100px;}
+                #hypercard {position:absolute; left:600px; top:200px}
+        </style>
+    </head>
+    <body>
+        <div id="kstage">
+        </div>
+        <div id="location">
+            <h1 id="docy">foo</h1>
+            <h1 id="docz">bar</h1>
+        </div>
+        <div id="hypercard">
+            <h1>This node:</h1>
+            <textarea id="info" readonly="readonly" style="font: 14px monospace"
+                rows="3" columns="20">default</textarea>
+        </div>
+    </body>
+</html>
