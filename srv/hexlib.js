@@ -3,7 +3,6 @@
 //+p is north like the y in xy. +q is 60 degrees CW from p. e.g.  p:| q:/ 
 //The distance between two vertices is 1 unit. A hex is pade of six equilateral
 //triangles - 6 vertices plus center, so its diapeter is 2 units.
-(function() {         //beginning of enclosing function
 var Sexy={};          //create Sexy namespace
 Sexy.xorigin=300; Sexy.yorigin=300;    //offset of pq origin in xy from top left
 Sexy.radius=15;         //pixels between vertices, and radius to corner of hex
@@ -226,7 +225,7 @@ Sexy.Grid = function(m,n,drawFunc) {
         for(var q=0; q<(2*n); q++) {
             Sexy.verts[p.toString()][q.toString()]=new Vertex(p,q);
             if(getVert(p,q).hexPhase()==true) {
-                Sexy.hexes[p.toString()][q.toString()]=thisHex;
+                Sexy.hexes[p.toString()][q.toString()]=new Hex(getVert(p,q));
             };
             if(getVert(p,q).hexPhase()!=true){
                 Sexy.hexes[p.toString()][q.toString()]=null;
@@ -235,4 +234,3 @@ Sexy.Grid = function(m,n,drawFunc) {
     };        
     return Sexy.hexes;
 };
-})(); //end of enclosing function

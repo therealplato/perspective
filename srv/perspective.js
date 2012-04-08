@@ -4,14 +4,15 @@
 var ctx={};
 
 hexClicked = function(h0) {
-    Sexy.socket.emit('hexClicked',{y:h0.center.y,
-                               z:h0.center.z});
-    console.log('Hex at ('+h0.center.y+','+
-                           h0.center.z+') clicked');
+    console.log(h0);
+    Sexy.socket.emit('hexClicked',{y:h0.center.p,
+                               z:h0.center.q});
+    console.log('Hex at ('+h0.center.p+','+
+                           h0.center.q+') clicked');
     var docy=document.getElementById("docy");
     var docz=document.getElementById("docz");
-    docy.innerHTML=h0.center.y;
-    docz.innerHTML=h0.center.z;
+    docy.innerHTML=h0.center.p;
+    docz.innerHTML=h0.center.q;
 };
 
 
@@ -31,11 +32,11 @@ ctx.stage.add(ctx.bgL);      ctx.stage.add(ctx.hexL);
 ctx.stage.add(ctx.linkL);    ctx.stage.add(ctx.noteL); 
 
 ctx.grid = Sexy.Grid(10,10); //this returns Sexy.hexes
-for(var m=-10;m<11;m++) {
-    for(var n=-10;n<11;n++) {
+for(var m=0;m<11;m++) {
+    for(var n=0;n<11;n++) {
         var thisHex=ctx.grid[m.toString()][n.toString()]
         if(thisHex != null){
-            thisHex['kinshape']= new Kinetic.RegularPolygon({
+            newShape=new Kinetic.RegularPolygon({
                 x:Sexy.pq2xy(m,n)['x'],
                 y:Sexy.pq2xy(m,n)['y'],
                 myHex:thisHex,
@@ -44,8 +45,13 @@ for(var m=-10;m<11;m++) {
                 fill: "#FFFFFF",
                 stroke: "black",
                 strokeWidth: 1,
-            }); 
-            thisHex['kinshape'].onClick=hexClicked(this.myHex);
+            });
+            newShape.on("click", function() {
+                console.log(this);
+                hexClicked(this.myHex);
+            });
+            thisHex['kinshape']=newShape;
+            ctx.bgL.add(newShape);
         };
     };
 };
@@ -73,8 +79,8 @@ for(var m=-10;m<11;m++) {
 
 console.log(getHex(0,0));
 
-Sexy.bgL.draw();
-Sexy.hexL.draw()
-Sexy.linkL.draw();
+ctx.bgL.draw();
+ctx.hexL.draw()
+ctx.linkL.draw();
 }; //end of window.onload()
 })();
