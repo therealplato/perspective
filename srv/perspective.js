@@ -13,12 +13,26 @@ hexClicked = function(h0) {
     var docz=document.getElementById("docz");
     docy.innerHTML=h0.center.p;
     docz.innerHTML=h0.center.q;
+    if(ctx.sel1['kinshape']){
+        ctx.sel2=ctx.sel1;  
+        ctx.sel2['kinshape'].moveTo(ctx.bgL);
+        ctx.sel2['kinshape'].setStroke("black");
+        ctx.sel1=h0;
+        ctx.sel1['kinshape'].moveTo(ctx.hexL);
+        ctx.sel1['kinshape'].setStroke("red");
+    }
+    else {
+        ctx.sel1=h0;
+        ctx.sel1['kinshape'].moveTo(ctx.hexL);
+        ctx.sel1['kinshape'].setStroke("red");
+    };
+draw();
 };
 
 
 draw = function() {
-    bgL.draw();
-    hexL.draw();
+    ctx.bgL.draw();
+    ctx.hexL.draw();
 };
 
 window.onload=function(){
@@ -31,9 +45,13 @@ ctx.noteL     = new Kinetic.Layer("notes");
 ctx.stage.add(ctx.bgL);      ctx.stage.add(ctx.hexL); 
 ctx.stage.add(ctx.linkL);    ctx.stage.add(ctx.noteL); 
 
-ctx.grid = Sexy.Grid(10,10); //this returns Sexy.hexes
-for(var m=0;m<11;m++) {
-    for(var n=0;n<11;n++) {
+ctx.gridRad=10;  //grid will be 20 hexes across
+ctx.hexRad=15;   //hexes will be 30 pixels across
+ctx.sel1={};
+
+ctx.grid = Sexy.Grid(ctx.gridRad); //this returns a grid of Sexy.hexes
+for(var m = -2*ctx.gridRad; m < 2*ctx.gridRad; m++) {
+    for(var n = -2*ctx.gridRad; n < 2*ctx.gridRad; n++) {
         var thisHex=ctx.grid[m.toString()][n.toString()]
         if(thisHex != null){
             newShape=new Kinetic.RegularPolygon({

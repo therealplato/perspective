@@ -9,14 +9,13 @@ on Arch:
 $ sudo pacman -Syy; sudo pacman -S couchdb nodejs ruby
 $ sudo rc.d start couchdb
 $ curl -vX GET http://localhost:5984
-
+$ git clone git@github.com:therealplato/perspective.git
 
 USAGE
 
-1) install nodejs from repo's
-2) $ cd perspective
-3) $ node app.js    
- connect to http://localhost:3210 in browser, enable JS
+1) $ cd perspective
+2) $ node app.js    
+3) connect to http://localhost:3210 in browser, enable JS
 
 Type a name for your project
 Now click on a hex to select it. The grid is blank at startup.

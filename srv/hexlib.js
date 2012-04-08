@@ -73,16 +73,17 @@ Vertex.prototype._4 =function(){ return getVert(this.p-1,this.q+1); };
 Vertex.prototype._2 =function(){ return getVert(this.p,  this.q+1); };
 
 //  if PhaseQ=PhaseP this vertex is in a hex, otherwise it's on the grid
-Vertex.prototype.gridPhase=function() { return this.phaseP != this.phaseQ; };
+//Vertex.prototype.gridPhase=function() { return this.phaseP != this.phaseQ; };
 Vertex.prototype.hexPhase=function()  { return this.phaseP == this.phaseQ; };
 
 
-//  Calculate distance between vertices, x axis first
-Vertex.prototype.distanceTo=function(v2) {
-
+//  Calculate distance between vertices
+Vertex.prototype.d2pq=function(p2,q2) {
+    p1=this.p;
+    q1=this.q;
+    dp=p2-p1;
+    dq=q2-q1;
     d=0;
-    dp=v2.p - this.p;         
-    dq=v2.q - this.q;
 
     while(dp != 0 || dq != 0) {      //step towards p=q axis, then to origin
         if((Math.abs(dp)+Math.abs(dq)) == Math.abs(dp + dq)) {
@@ -94,10 +95,16 @@ Vertex.prototype.distanceTo=function(v2) {
         else if (dp < 0 && dq > 0){
                            d = d+1;  dp=dp+1; dq=dq-1; }
         
-        else { console.log("ERROR in Vertex.distanceTo"); 
+        else { console.log("ERROR in Vertex.d2vert"); 
         }; //end of if loop
     }; //end of while loop
     return d;
+};
+
+Vertex.prototype.d2vert=function(v2) {
+    p2=v2.p;
+    q2=v2.q;
+    this.d2pq(p2,q2);
 }; 
 
 
@@ -119,7 +126,7 @@ Vertex.prototype.pathTo=function(vn,pathArr) {
         neighbors.push({'p':this.p+dp[i], 'q':this.q+dq[i], 'd':null});
         var vi=getVert(neighbors[i]['p'],neighbors[i]['q']);
         if(vi==null){console.log("Skipping inaccessible"); continue;};
-        var di=vi.distanceTo(vn);
+        var di=vi.d2vert(vn);
         neighbors[i]["d"]=di;
     };    
     neighbors.sort( function(a,b) {   
@@ -218,13 +225,14 @@ function pivotOut(v0,theta){
 };
 
 
-Sexy.Grid = function(m,n,drawFunc) {
-    for(var p=0; p<2*m; p++) {
+Sexy.Grid = function(r) {
+    for(var p=-2*r; p<2*r; p++) {
     Sexy.verts[p.toString()]={};
     Sexy.hexes[p.toString()]={};
-        for(var q=0; q<(2*n); q++) {
+        for(var q=-2*r; q<2*r; q++) {
             Sexy.verts[p.toString()][q.toString()]=new Vertex(p,q);
-            if(getVert(p,q).hexPhase()==true) {
+            var vtmp=getVert(p,q);
+            if(vtmp.hexPhase()==true && (vtmp.d2pq(0,0)<=(2*r))) {
                 Sexy.hexes[p.toString()][q.toString()]=new Hex(getVert(p,q));
             };
             if(getVert(p,q).hexPhase()!=true){
