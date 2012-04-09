@@ -1,15 +1,17 @@
 var app = require('http').createServer(handler)
   , path = require('path')
   , fs = require('fs')
-  , io = require('socket.io').listen(app);
+  , io = require('socket.io').listen(app)
+  , nano = require('nano')('http://localhost:5984');
 
+  nano.request({db:"_uuids"}, function(_,uuids){console.log(uuids); });
 app.listen(3210);
 
 function handler (req, res) {
     console.log('request for: '+req.url);
     var filePath='.'+req.url;
     if (filePath=='./')
-        filePath='./hexgrid.html';
+        filePath='srv/index.html';
     var extname = path.extname(filePath);
     var contentType='text/html';
     switch (extname) {
@@ -42,17 +44,16 @@ function handler (req, res) {
 
 
 io.sockets.on('connection', function (socket) {
-//  socket.emit('news', { hello: 'world' });
-//  socket.on('my other event', function (data) {
-//    console.log(data);
-//  });
     socket.emit('online',{foo:'ping'});
-    socket.emit('activate', {'i':2,'j':3,'color':'#333333'});
-    socket.on('clicked', function (data) {
+    socket.on('hexClicked', function (data) {
         console.log(data);
         socket.emit('ack', data);
+    });
+    socket.on('UIClicked', function(data) {
+        console.log(data); 
     });
     socket.on('pong', function(data) {
         console.log("got pong:"+data);
     });
+    socket.emit('activate', {'i':2,'j':3,'color':'#333333'});
 });

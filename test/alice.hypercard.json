@@ -1,0 +1,9 @@
+{
+    "protocol":"hypercard.v1",
+    "data": {
+                "nick":"alice",
+                "fp":"0xDEADBEEF"
+            },
+    "sig": "asdf12345",
+    "hash": ""
+}

@@ -1,17 +1,41 @@
-
 This is a work in progress tool suite to simulate & inspect trust networks.
-Dependencies: couchdb, node.js
-
-Data will be stored in couchdb, processed with node.js and ruby, and 
-displayed on an html5 hex grid.
-
-NODE.JS code
-install nodejs from repo's
-cd perspective/srv/
-node app.js    #then connect to http://localhost:3210 in browser
+Presentation is through an html5 page that connects to a node.js app
 
 
-RUBY code - original trust model
+INSTALL
+
+Dependencies: couchdb, node.js, ruby.
+on Arch:
+$ sudo pacman -Syy; sudo pacman -S couchdb nodejs ruby
+$ sudo rc.d start couchdb
+$ curl -vX GET http://localhost:5984
+$ git clone git@github.com:therealplato/perspective.git
+
+USAGE
+
+1) $ cd perspective
+2) $ node app.js    
+3) connect to http://localhost:3210 in browser, enable JS
+
+Type a name for your project
+Now click on a hex to select it. The grid is blank at startup.
+Click "Place Nym" and add some info. Do it again.
+Click "Add link", click From, click To, type a score.
+Click "Save".
+
+
+WHATS GOING ON
+
+Nym data and link data are stored in a container called a "hypercard." For 
+future work, these hypercards can be signed and hashed to use with Skyhook.
+Hypercards are json, stored in couchdb, see test/alice.nymcard.json.
+
+The Front End is a web app that uses the KineticJS library client-side to draw
+a hex map. It connects to node.js running on localhost, which talks to Ruby,
+filtering the database to pass information back to the client's browser.
+
+Back end - RUBY code
+
 Uses a hardcoded couchdb at localhost:5984/persp2 in dashboard.rb
 
 Usage:
@@ -66,10 +90,10 @@ Random ass notes:
 
 Design goals 
 Put the data in a couchdb - CHECK!
-Read and display it with node.js
+Read and display it with node.js - ALMOST CHECK!
   Build any nym topology
-  Find a better name than nym topology - ecosystem? society? nymcosm? nymtext?
-  How'll we use this tool?
+  Find a better name than nym topology - nymcosm macro, nymtext micro?
+How'll we use this tool?
   "Build a network of 50 nyms who all trust each other a little bit. Some nyms
   trust each other substantially. A couple nyms have bad ratings due to past
   scamming activity. Can the majority of the nyms identify the bad users?"
@@ -91,8 +115,8 @@ Read and display it with node.js
   everyone
   Normal - Sent ratings and received ratings both follow a normal distribution
 
-Use html5 and javascript to let the client interact
-Use socket.io to get events - add new nym, set nym behavior, set cliques
+Use html5 and javascript to let the client interact: CHECK
+Use socket.io to get events - add new nym, set nym behavior, set cliques: CHECK
 
 Let nodes talk to each other to exchange data - so they can share their own 
 nymcosms and algorithms
@@ -122,3 +146,34 @@ don't like hurting or scamming other people, and don't like being cheated.
 
 There's plenty of ppl who are shitty and it shouldn't really be that hard for
 lightside nyms to filter most of them out, if they compare notes
+
+
+Other stuff the hex grid could be useful for:
+
+==Trust Grid==
+User experience:
+Open a webpage, get a blank grid
+Click to place a nym
+Maneuver through the nymscape
+Click a placed nym and drag to another nym to create a link
+Type the rating score in a popup
+Call Ruby code, passing in the topology, to send advanced metrics through pipe
+Display map of results
+
+==Parker's Sailing Game==
+Hex map of the environment
+Constant wind in one direction, plus gusts
+Use movement points to maneuver. Not sure what tacking costs
+Fire broadsides
+MMO, ships cost money
+
+==EVE Online world map==
+Eve's map is highly interconnected and quite large (7500 systems)
+Redraw map from one or more points of view 
+Prioritize nearby and important stuff, somehow collapse or marginalize less
+coherent / relevant links.
+Automatically draw links and place systems
+
+==Forum/UI==
+Display node data as you move around on the grid. Figure out a way to scroll
+through children and sort.
