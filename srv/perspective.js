@@ -13,20 +13,26 @@ hexClicked = function(h0) {
     var docz=document.getElementById("docz");
     docy.innerHTML=h0.center.p;
     docz.innerHTML=h0.center.q;
-    if(ctx.sel1['kinshape']){
+    if(!ctx.sel1['kinshape']) {
+        ctx.sel1=h0;
+    };
         ctx.sel2=ctx.sel1;  
         ctx.sel2['kinshape'].moveTo(ctx.bgL);
         ctx.sel2['kinshape'].setStroke("black");
         ctx.sel1=h0;
         ctx.sel1['kinshape'].moveTo(ctx.hexL);
         ctx.sel1['kinshape'].setStroke("red");
-    }
-    else {
-        ctx.sel1=h0;
-        ctx.sel1['kinshape'].moveTo(ctx.hexL);
-        ctx.sel1['kinshape'].setStroke("red");
-    };
+        if(ctx.sel1['kinshape'].fill != "#FFAA77") {
+            ctx.sel1['kinshape'].setFill("#FFAA77");
+        } else {
+            ctx.sel1['kinshape'].setFill("white");
+        };
+        
+    
 draw();
+infobox=document.getElementById("info");
+infobox.value="Hai thar";
+
 };
 
 
@@ -100,5 +106,7 @@ console.log(getHex(0,0));
 ctx.bgL.draw();
 ctx.hexL.draw()
 ctx.linkL.draw();
+
+
 }; //end of window.onload()
 })();

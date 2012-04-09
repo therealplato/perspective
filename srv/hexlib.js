@@ -3,9 +3,10 @@
 //+p is north like the y in xy. +q is 60 degrees CW from p. e.g.  p:| q:/ 
 //The distance between two vertices is 1 unit. A hex is pade of six equilateral
 //triangles - 6 vertices plus center, so its diapeter is 2 units.
-var Sexy={};          //create Sexy namespace
-Sexy.xorigin=300; Sexy.yorigin=300;    //offset of pq origin in xy from top left
-Sexy.radius=15;         //pixels between vertices, and radius to corner of hex
+var Sexy={};          //create Sexy Scopetext
+Sexy.xorigin=300;     //TODO disconnect this from canvas px 
+Sexy.yorigin=300
+Sexy.radius=15;       //pixels between vertices, also radius to corner of hex
 Sexy.r=function(){ return Sexy.radius;};
 
 Sexy.verts={}; //this will hold Vertex objects
@@ -45,7 +46,6 @@ Vertex = function(p0,q0) {
 
     this.p=p0;    this.q=q0;    this.theta=null;
     //theta: rotation angle. 0: up/12'ck, Pi/3: 10'ck, Pi: 6'ck 2*Pi: 12'ck
-//    this.links={"to":[],"from":[]};
     this.phaseP=((this.p%3)+3)%3;    this.phaseQ=((this.q%3)+3)%3;
     //We have to do modulo twice to handle p|q<0. e.g. (-4)%3 = -1 => (-1+3)%3=2
 };
@@ -61,6 +61,7 @@ getVert=function(p,q) {
     else 
     { return Sexy.verts[pstr][qstr]; };
 };
+
 //Sexy.getVert = function(p,q)   { return getVert(p,q);};
 
 
